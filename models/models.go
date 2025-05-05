@@ -2,9 +2,10 @@ package models
 
 import (
 	"sync"
-
-	"github.com/ipfs/boxo/bitswap/network"
 )
+
+//FOR YOUR REFERENCE
+
 
 type Task func()
 
@@ -38,6 +39,8 @@ type Scheduler struct{
 	globalQueue chan *G
 	mu sync.Mutex
 	networkPoller chan *G
-	blockedG chan *G
+	blockedG chan *G //Syscalls
 	gIDCounter int
 }
+
+
