@@ -13,6 +13,11 @@ This project simulates and demonstrates:
 - 🔧 **System Call Handling** – How goroutines pause and resume after syscalls
 - 🌐 **Network Polling Simulation** – Simulated I/O wait using network pollers
 
+## Go Source Code
+
+You can view the full `proc.go` source file from the Go runtime here:  
+[Go runtime/proc.go](https://github.com/golang/go/blob/master/src/runtime/proc.go)
+
 ----
 
   ```
