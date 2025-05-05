@@ -71,4 +71,15 @@ func NewScheduler(numPs, numMs int) *Scheduler{
 	return s
 }
 
+func (s *Scheduler) Go(task Task){
+	s.mu.Lock()
+	g:= &G{
+		task: task,
+		id: s.gIDCounter,
+		state: "runnable",
+	}
+	s.gIDCounter++
+	s.mu.Unlock()
+	s.globalQueue <- g
+}
 
