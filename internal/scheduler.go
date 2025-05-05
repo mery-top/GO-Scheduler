@@ -109,3 +109,13 @@ func(s *Scheduler) PollNetwork(){
 		s.networkPoller <- g
 	}
 }
+
+
+func (s *Scheduler) HandleSysCalls(){
+	for g:= range s.blockedG{
+		time.Sleep(200 * time.Millisecond) //Mimic the syscall delay time
+		g.state = "runnable"
+		fmt.Printf("[SyscallReturn]: g[%d] returning from Syscall", g.id)
+		s.globalQueue <- g
+	}
+}
