@@ -9,6 +9,8 @@ import(
 )
 
 
+//Give me some ideas to import structs from models can't use models.P again & again....
+
 type Task func()
 
 
@@ -71,7 +73,6 @@ func NewScheduler(numPs, numMs int) *Scheduler{
 	return s
 }
 
-//Go func for creating Tasks and puttting them to Global Queue
 func (s *Scheduler) Go(task Task){
 	s.mu.Lock()
 	g:= &G{
@@ -87,7 +88,7 @@ func (s *Scheduler) Go(task Task){
 func (s *Scheduler) Start(){
 	for _, m:= range s.Ms{
 		go s.RunMachine(m) 
-		// Start a goroutine for each M to simulate OS threads.
+		// Start a goroutine for each M to simulate OS threads. :)
 	}
 	go s.PollNetwork()
 	go s.HandleSysCalls()
@@ -113,9 +114,38 @@ func(s *Scheduler) PollNetwork(){
 
 func (s *Scheduler) HandleSysCalls(){
 	for g:= range s.blockedG{
-		time.Sleep(200 * time.Millisecond) //Mimic the syscall delay time
+		time.Sleep(200 * time.Millisecond) //Mimic the syscall delay time 
 		g.state = "runnable"
 		fmt.Printf("[SyscallReturn]: g[%d] returning from Syscall", g.id)
 		s.globalQueue <- g
+	}
+}
+
+func (s *Scheduler) RunMachine( m *M){
+	m.running = true //assign a kernel thread
+	m.boundP = s.Ps[m.id% len(s.Ps)] //static round-robin
+	p:= m.boundP //m.boundP = *P
+
+	fmt.Printf("M[%d] BOUND to P[%d]", m.id, p.id)
+
+	//ASSIGN GO-ROUTINES
+
+	for{
+		var g *G
+		select{
+			case g = <- p.runQueue:
+			case g = <- s.globalQueue:
+			default:
+				//Steal
+				for _, otherP:= range s.Ps{
+					if otherP.id != p.id{
+						select{
+						case g = <- otherP.runQueue:
+							
+						}
+					}
+				}
+		
+		}
 	}
 }
