@@ -71,6 +71,7 @@ func NewScheduler(numPs, numMs int) *Scheduler{
 	return s
 }
 
+//Go func for creating Tasks and puttting them to Global Queue
 func (s *Scheduler) Go(task Task){
 	s.mu.Lock()
 	g:= &G{
@@ -83,3 +84,28 @@ func (s *Scheduler) Go(task Task){
 	s.globalQueue <- g
 }
 
+func (s *Scheduler) Start(){
+	for _, m:= range s.Ms{
+		go s.RunMachine(m) 
+		// Start a goroutine for each M to simulate OS threads.
+	}
+	go s.PollNetwork()
+	go s.HandleSysCalls()
+}
+
+func(s *Scheduler) PollNetwork(){
+	for{
+		time.Sleep(time.Duration(rand.Intn(200)+100) * time.Millisecond)
+		s.mu.Lock()
+		g:= &G{
+			id: s.gIDCounter,
+			task: func() {
+				fmt.Println("[NetPoll]: Handling network Event")
+			},
+			state: "runnable",
+		}
+		s.gIDCounter++
+		s.mu.Unlock()
+		s.networkPoller <- g
+	}
+}
