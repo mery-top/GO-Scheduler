@@ -3,7 +3,6 @@ package internal
 import(
 	"fmt"
 	"math/rand"
-	"runtime"
 	"sync"
 	"time"
 )
