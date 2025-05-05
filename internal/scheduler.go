@@ -129,23 +129,63 @@ func (s *Scheduler) RunMachine( m *M){
 	fmt.Printf("M[%d] BOUND to P[%d]", m.id, p.id)
 
 	//ASSIGN GO-ROUTINES
+	var g *G
 
 	for{
-		var g *G
 		select{
 			case g = <- p.runQueue:
-			case g = <- s.globalQueue:
+			case g = <- s.globalQueue: //Automatically goes to EXEC tag
 			default:
 				//Steal
 				for _, otherP:= range s.Ps{
 					if otherP.id != p.id{
 						select{
 						case g = <- otherP.runQueue:
-							
+							fmt.Printf("M[%d] STEALING FROM P[%d]", m.id, otherP.id) //if nothing in current P, M steals from other P's
+							goto EXEC //manually go to EXEC inside default.
+
+						default:
 						}
 					}
 				}
+				//NetworkPoll
+				select{
+				case g = <- s.networkPoller:
+					fmt.Printf("M[%d] WOKE G[%d] NETWORK POLLER", m.id, g.id)
+					goto EXEC
+				default:
+				}
+				
+				//if nothing
+				time.Sleep(10 * time.Millisecond) //realistic scheduler wait, giving time for other goroutines to become available avoid 100%CPU & busy waiting.
+				continue
 		
 		}
 	}
+
+EXEC:
+	g.state = "running"
+	fmt.Printf("[State] G[%d] state changed to RUNNING by M[%d]\n", g.id, m.id)
+	done:= make(chan struct{})
+
+	go func(){
+		if rand.Intn(10) <2{
+			fmt.Printf("[SysCall] G[%d] performing BLOCKING syscall\n", g.id)
+			g.state = "blocked"
+			s.blockedG <- g
+			return
+		}
+		g.task()
+		close(done)
+	}()
+
+	select{
+	case <-done:
+		fmt.Printf("[State] G[%d] finished\n", g.id)
+	case <- time.After(100 * time.Millisecond):
+		fmt.Printf("[Preempt] G[%d] preempted\n", g.id)
+		g.state = "runnable"
+		p.runQueue <- g
+	}
+
 }
