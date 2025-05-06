@@ -2,6 +2,11 @@
 
 > 🚀 This project emulates Go's runtime scheduler and models how Go manages goroutines using its M:N scheduler.
 
+----
+
+## Blog
+- Read the Blog here [Go Scheduler](https://dev.to/meerthika/go-scheduler-understanding-why-goroutines-are-so-lightweight-3ka8)
+  
 ## 🎯 Focus Areas
 
 This project simulates and demonstrates:
